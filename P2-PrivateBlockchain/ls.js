@@ -21,7 +21,6 @@ function getBlock(blockHeight){
             resolve(console.log(value));
         })
     });
-    //return value;
 }
 
 // Add data to levelDB with value
