@@ -14,11 +14,15 @@ function addLevelDBData(key,value){
 }
 
 // Get data from levelDB with key
-function getBlock(blockHeight){
-    new Promise(function(resolve, reject){
-        db.get(blockHeight, function(err, value) {
-            if (err) reject(console.log('Not found!', err));
-            resolve(console.log(value));
+function getLevelDBData(key){
+    return new Promise(function(resolve, reject){
+        db.get(key, function(err, value) {
+            if (err) {
+                reject(err)};
+            resolve(value);
+            //return JSON.parse(JSON.stringify(value));
+            //console.log(value);
+            //console.log(JSON.parse(JSON.stringify(value)));
         })
     });
 }
@@ -36,6 +40,58 @@ function addDataToLevelDB(value) {
         });
 }
 
+// Get the last block height
+function getHeight() {
+    //new Promise(function(resolve, reject){
+        let i = 0;
+        db.createReadStream().on('data', function(data) {
+            i++;
+            }).on('error', function(err) {
+                console.log(err)
+            }).on('close', function() {
+            console.log(i - 1);
+            //addLevelDBData(i, value);
+            });
+    //})
+}
+
+function sp() {
+    return new Promise(function(resolve, reject){
+        let i = 0;
+        db.createReadStream().on('data', function(data) {
+            i++;
+            }).on('error', function(err) {
+                reject(err)
+            }).on('close', function() {
+            console.log(i - 1);
+            //addLevelDBData(i, value);
+            });
+    })
+}
+function stupid() {
+    sp().then(function(value){
+        return value;
+    })
+}
+
+// Add a block
+function addBlock1(newBlock) {
+        getBlockHeight().then(function(height){
+            height = ++height;
+            //time = new Date().getTime().toString().slice(0,-3);
+            //if(height > 0){
+                //previousBlockHash = getBlock(height - 1).hash;
+            //}
+            //hash = SHA256(JSON.stringify(newBlock)).toString();
+            addLevelDBData(height, newBlock);
+            console.log("Block #" + height + " added")
+        }).catch(function(err){
+            console.log(err);
+        });
+            //});
+    //})
+}
+
 /* ===== Testing ==============================================================|
 |  - Self-invoking function to add blocks to chain                             |
 |  - Learn more:                                                               |
@@ -48,9 +104,17 @@ function addDataToLevelDB(value) {
 |  ===========================================================================*/
 
 
-(function theLoop (i) {
+/*(function theLoop (i) {
   setTimeout(function () {
     addDataToLevelDB('Testing data');
     if (--i) theLoop(i);
   }, 100);
-})(10);
+})(10);*/
+
+//addBlock("I wonder if this will work34");
+/*getBlockHeight().then(function(dbheight){
+    console.log(dbheight);
+    getBlock(dbheight).then(function(result){
+        console.log(result)});
+});*/
+//getBlock(0).then(function(result){console.log(result);}).catch(function(err){console.log(err);})
