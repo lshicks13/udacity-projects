@@ -48,9 +48,10 @@ class Blockchain{
         return new Promise(function (resolve, reject) {
             db.get(key, function (err, value) {
                 if (err) {
-                    reject(err)
-                };
-                resolve(value);
+                    reject(err);
+                } else {
+                    resolve(value);
+                }
             })
         });
     }
@@ -72,7 +73,8 @@ class Blockchain{
   }*/
 
   addBlock1(newBlock) {
-        newBlock.height = this.getChainLength();
+        var chainlength = this.getChainLength();
+        newBlock.height = chainlength;
         //newBlock.height = newBlock.height + 1
         console.log(newBlock.height);
         //newBlock.height = ++blockheight;
@@ -116,7 +118,7 @@ class Blockchain{
     // Get block height
     getBlockHeight(){
         this.getBlockNum().then(function(result){
-            console.log(result);
+            console.log(result -1);
             return (result - 1);
             //return JSON.parse(JSON.stringify(result));
         }).catch(function(err){
@@ -126,9 +128,11 @@ class Blockchain{
 
     // get block
     getBlock(blockHeight){
-        this.getLevelDBData(blockHeight).then(function(result){
-            console.log(result);
-            return result;
+        var getDBdata = this.getLevelDBData(blockHeight)
+        getDBdata.then(function(result){
+            //result;
+            console.log(JSON.parse(JSON.stringify(result)));
+            //return result;
             //return JSON.parse(JSON.stringify(result));
         }).catch(function(err){
             console.log(err);})
