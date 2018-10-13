@@ -32,12 +32,27 @@ class Block{
 
 class Blockchain{
     constructor() {
-        //this.chain = [];
         //this.addBlock(new Block("First block in the chain - Genesis block"));
-        //this.name = "My Blockchain";
         this.addDataToLevelDB("Genesis Block");
     }
 
+    // Add new block
+    /*addBlock(newBlock) {
+        // Block height
+        newBlock.height = this.chain.length;
+        // UTC timestamp
+        newBlock.time = new Date().getTime().toString().slice(0,-3);
+        // previous block hash
+        if(this.chain.length>0){
+        newBlock.previousBlockHash = this.chain[this.chain.length-1].hash;
+        }
+        // Block hash with SHA256 using newBlock and converting to a string
+        newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+        // Adding block object to chain
+        this.chain.push(newBlock); 
+    }*/
+
+    // Add data to levelDB with value
     addDataToLevelDB(value) {
         return new Promise(function (resolve, reject) {
             let i = 0;
@@ -52,6 +67,7 @@ class Blockchain{
         })
     }
 
+    // Get data from levelDB with key
     getLevelDBData(key) {
         return new Promise(function (resolve, reject) {
             db.get(key, function (err, value) {
@@ -65,6 +81,45 @@ class Blockchain{
         })
     }
     
+    // get block
+    getBlock(blockHeight){
+        var getDBData = this.getLevelDBData(blockHeight);
+        getDBData.then(function(result){
+            console.log(result);
+            // return object as a single string
+            return JSON.parse(JSON.stringify(result));
+        }).catch(function(err){
+            console.log(err);
+        })
+    }
+
+    countBlocks() {
+        return new Promise(function (resolve, reject) {
+            let i = 0;
+            db.createReadStream().on('data', function (data) {
+                i++;
+            }).on('error', function (err) {
+                reject(err)
+            }).on('close', function () {
+                resolve(i);
+                console.log('Block #' + i + ' will be created next');
+            });
+        })
+    }
+
+    // Get block height
+    getBlockHeight(){
+        var getBlockCount = this.countBlocks();
+        getBlockCount.then(function(result){
+            var blockheight = result - 1;
+            console.log('The last block is Block #' + blockheight);
+            // return object as a single string
+            return blockheight;
+        }).catch(function(err){
+            console.log(err);
+        })
+    }
+
 }
 
 // Add data to levelDB with key/value pair
@@ -76,9 +131,14 @@ function addLevelDBData(key, value) {
             }
             else {
                 resolve(value);
+                console.log('Block #' + key + ' has been successfully added.');
             };
         })
     })
 }
 
-
+/*bc.addDataToLevelDB({"squadName": "Super hero squad",
+"homeTown": "Metro City",
+"formed": 2016,
+"secretBase": "Super tower",
+"active": true}).then(function(result){console.log(result);}).catch(function(err){console.log(err);})*/
