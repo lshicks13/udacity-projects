@@ -33,24 +33,25 @@ class Block{
 class Blockchain{
     constructor() {
         //this.addBlock(new Block("First block in the chain - Genesis block"));
-        this.addDataToLevelDB("Genesis Block");
+        this.addDataToLevelDB(new Block("Genesis Block"));
     }
 
     // Add new block
-    /*addBlock(newBlock) {
+    addBlock(newBlock) {
+        var height = this.getBlockHeight();
         // Block height
-        newBlock.height = this.chain.length;
+        newBlock.height = height;
         // UTC timestamp
         newBlock.time = new Date().getTime().toString().slice(0,-3);
         // previous block hash
-        if(this.chain.length>0){
-        newBlock.previousBlockHash = this.chain[this.chain.length-1].hash;
+        if(height > 0){
+        newBlock.previousBlockHash = this.getBlock(height - 1).hash;
         }
         // Block hash with SHA256 using newBlock and converting to a string
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
         // Adding block object to chain
-        this.chain.push(newBlock); 
-    }*/
+        this.addDataToLevelDB(newBlock); 
+    }
 
     // Add data to levelDB with value
     addDataToLevelDB(value) {
@@ -86,6 +87,7 @@ class Blockchain{
         var getDBData = this.getLevelDBData(blockHeight);
         getDBData.then(function(result){
             console.log(result);
+            console.log(JSON.parse(JSON.stringify(result)));
             // return object as a single string
             return JSON.parse(JSON.stringify(result));
         }).catch(function(err){
