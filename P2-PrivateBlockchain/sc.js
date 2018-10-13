@@ -83,7 +83,7 @@ class Blockchain{
             //previousBlockHash = getBlock(height - 1).hash;
         //}
         //hash = SHA256(JSON.stringify(newBlock)).toString();
-        this.addLevelDBData(newBlock.height, newBlock);
+        this.addLevelDBData(chainlength, newBlock);
         //addLevelDBData(newBlock.height, newBlock);
         console.log("Block #" + newBlock.height + " added");
         //});

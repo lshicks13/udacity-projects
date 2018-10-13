@@ -35,7 +35,7 @@ class Blockchain{
         //this.chain = [];
         //this.addBlock(new Block("First block in the chain - Genesis block"));
         //this.name = "My Blockchain";
-        this.addDataToLevelDB("I hope this shit works");
+        this.addDataToLevelDB("Genesis Block");
     }
 
     addDataToLevelDB(value) {
