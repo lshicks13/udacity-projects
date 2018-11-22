@@ -41,36 +41,29 @@ class Blockchain{
 
     // Add new block
     addBlock(newBlock){
-        //var cbh;
         // Block height
         db.getBlocksCount().then((count) => {
-            var cbh = count - 1;
-            newBlock.height = cbh + 1;
-            var pbh = cbh - 1;
+            var blockHeight = count - 1;
+            newBlock.height = blockHeight + 1;
             // UTC timestamp
             newBlock.time = new Date().getTime().toString().slice(0,-3);
             // Block hash with SHA256 using newBlock and converting to a string
             newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
             //Add previous block hash if blockheight is greater than zero
             if(newBlock.height > 0){
-                db.getLevelDBData(pbh).then((value) => {
-                    var block = JSON.stringify(value);
-                    //console.log('block' + block);
-                    pbh = SHA256(block).toString();
-                    //console.log('hashed block' + pbh);
-                    return pbh;
-                }).then((pbh) => { 
-                    //console.log('this is the pbh' + pbh); 
-                    newBlock.previousBlockHash = pbh;
-                    // Adding block object to chain
-                    console.log('this is the new block right before its saved to the db' + JSON.stringify(newBlock));
+                db.getLevelDBData(blockHeight).then((value) => {
+                    var prevBlock = JSON.parse(value);
+                    newBlock.previousBlockHash = prevBlock.hash;
+                    newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+                    //console.log(JSON.stringify(newBlock));
                     db.addDataToLevelDB(JSON.stringify(newBlock).toString());
                 }).catch((err) => { 
                    console.log(err); 
                 });
             } else{
-                console.log('this is the new block right before its saved to the db' + JSON.stringify(newBlock));
-                db.addDataToLevelDB(JSON.stringify(newBlock));
+                // Block hash with SHA256 using newBlock and converting to a string
+                //console.log(JSON.stringify(newBlock).toString());
+                db.addDataToLevelDB(JSON.stringify(newBlock).toString());
             };
         }).catch((err) => {
             console.log(err); 
@@ -79,11 +72,15 @@ class Blockchain{
     
 
     getBlock(bheight) {
-        // pull block from db and return it
+        // pull block from db
         db.getLevelDBData(bheight)
             .then((value) => {
-                console.log('Block #' + bheight + ' successfully retrieved!')
-                console.log(value);
+                if(value == undefined){
+                    console.log('Block #' + bheight + ' does not exist.');
+                }else{
+                    console.log('Block #' + bheight + ' successfully retrieved!')
+                    console.log(value);
+                }
            })
            .catch((err) => { 
                console.log(err); 
@@ -94,7 +91,6 @@ class Blockchain{
         db.getBlocksCount().then((count) => {
             var height = count - 1;
             console.log('The current block is Block #' + height);
-            return count;
         }).catch((err) => {
             console.log(err); 
         });
@@ -109,7 +105,7 @@ let bc = new Blockchain();
         bc.addBlock(new Block('Data ' + i));
         i++;
         if (i < 3) { 
-          theLoop(i) 
+          theLoop(i);
         }
     }, 600);
   })(0);
