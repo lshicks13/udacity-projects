@@ -54,6 +54,21 @@ let inducedErrorBlocks = [2,4,7];
 for (var i = 0; i < inducedErrorBlocks.length; i++) {
   blockchain.chain[inducedErrorBlocks[i]].data='induced chain error';
 }
+
+async function induceErrors(){
+    let inducedErrorBlocks = [2,4,7];
+    for (let i = 0; i < inducedErrorBlocks.length; i++) {
+        //blockchain.chain[inducedErrorBlocks[i]].data='induced chain error';
+        let errorBlock = inducedErrorBlocks[i];
+        let value = await db.getLevelDBData(errorBlock);
+        let block = JSON.parse(value);
+        block.body = 'induced chain error';
+        console.log(JSON.stringify(block));
+        block.hash = SHA256(JSON.stringify(block)).toString();
+        bc.validateBlock(errorBlock);
+        console.log(JSON.stringify(block));
+    } 
+}
 ```
 8: Validate blockchain. The chain should now fail with blocks 2,4, and 7.
 ```

@@ -36,7 +36,7 @@ class Block{
 
 class Blockchain{
     constructor() {
-        this.addBlock(new Block("First block in the chain - Genesis block"));
+        this.addBlock(new Block("random data"));
     }
 
     // Add new block
@@ -47,13 +47,12 @@ class Blockchain{
             newBlock.height = blockHeight + 1;
             // UTC timestamp
             newBlock.time = new Date().getTime().toString().slice(0,-3);
-            // Block hash with SHA256 using newBlock and converting to a string
-            newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
             //Add previous block hash if blockheight is greater than zero
             if(newBlock.height > 0){
                 db.getLevelDBData(blockHeight).then((value) => {
                     var prevBlock = JSON.parse(value);
                     newBlock.previousBlockHash = prevBlock.hash;
+                    console.log(JSON.stringify(newBlock));
                     newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
                     //console.log(JSON.stringify(newBlock));
                     db.addDataToLevelDB(JSON.stringify(newBlock).toString());
@@ -61,8 +60,10 @@ class Blockchain{
                    console.log(err); 
                 });
             } else{
+                newBlock.body = "Genesis Block";
+                console.log(JSON.stringify(newBlock));
                 // Block hash with SHA256 using newBlock and converting to a string
-                //console.log(JSON.stringify(newBlock).toString());
+                newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
                 db.addDataToLevelDB(JSON.stringify(newBlock).toString());
             };
         }).catch((err) => {
@@ -95,6 +96,63 @@ class Blockchain{
             console.log(err); 
         });
     }
+
+    // validate block
+    validateBlock(blockHeight){
+        // get block object
+        db.getLevelDBData(blockHeight).then((value) => {
+            let block = JSON.parse(value);
+            // get block hash
+            let blockHash = block.hash;
+            // remove block hash to test block integrity
+            block.hash = '';
+            // generate block hash
+            let validBlockHash = SHA256(JSON.stringify(block)).toString();
+            // Compare
+            if (blockHash===validBlockHash) {
+                console.log('Block #'+blockHeight+' hash validated!');
+            } else {
+                console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+            }
+        }).catch((err) => { 
+           console.log(err); 
+        });
+    }
+  
+    // Validate blockchain
+    async validateChain(){
+        var count = await db.getBlocksCount();
+        var errorLog = [];
+        var blockHeight = count - 1;
+        for (let i = 0; i < blockHeight; i++) {
+            //Validate block
+            let value = await db.getLevelDBData(i);
+            let value2 = await db.getLevelDBData(i + 1);
+            let block = JSON.parse(value);
+            let block2 = JSON.parse(value2);
+            let blockHash = block.hash;
+            block.hash = '';
+            let validBlockHash = SHA256(JSON.stringify(block)).toString();
+            if (blockHash === validBlockHash) {
+                console.log('Block #' + i + ' validated!');
+            } else {
+                console.log('Block #' + i + ' is invalid!');
+                errorLog.push(i);
+            }
+            let previousHash = block2.previousBlockHash;
+            //Compare the block.hash of a block to the block.previousBlockHash in the next block to 
+            //This validates the chain
+            if (blockHash !== previousHash) {
+                errorLog.push(i);
+            }
+        }
+        if (errorLog.length>0) {
+            console.log('Block errors = ' + errorLog.length);
+            console.log('Blocks: '+errorLog);
+        } else {
+            console.log('No errors detected');
+        }
+    }
 }
 
 let bc = new Blockchain();
@@ -104,8 +162,10 @@ let bc = new Blockchain();
         //Test Object
         bc.addBlock(new Block('Data ' + i));
         i++;
-        if (i < 3) { 
+        if (i < 4) { 
           theLoop(i);
         }
     }, 600);
   })(0);
+
+
