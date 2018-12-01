@@ -36,7 +36,7 @@ node
 3: Copy and paste your code into your node session
 4: Instantiate blockchain with blockchain variable
 ```
-let blockchain = new Blockchain();
+let bc = new Blockchain();
 ```
 5: Generate 10 blocks using a for loop
 ```
@@ -50,23 +50,16 @@ blockchain.validateChain();
 ```
 7: Induce errors by changing block data
 ```
-let inducedErrorBlocks = [2,4,7];
-for (var i = 0; i < inducedErrorBlocks.length; i++) {
-  blockchain.chain[inducedErrorBlocks[i]].data='induced chain error';
-}
-
 async function induceErrors(){
     let inducedErrorBlocks = [2,4,7];
     for (let i = 0; i < inducedErrorBlocks.length; i++) {
         //blockchain.chain[inducedErrorBlocks[i]].data='induced chain error';
         let errorBlock = inducedErrorBlocks[i];
-        let value = await db.getLevelDBData(errorBlock);
-        let block = JSON.parse(value);
+        let block = JSON.parse(await bc.getBlock(errorBlock));
         block.body = 'induced chain error';
-        console.log(JSON.stringify(block));
         block.hash = SHA256(JSON.stringify(block)).toString();
-        bc.validateBlock(errorBlock);
-        console.log(JSON.stringify(block));
+        console.log('Block #' + errorBlock + 'with errors...' + JSON.stringify(block) + '\n\n');
+        db.addLevelDBData(errorBlock, JSON.stringify(block).toString());
     } 
 }
 ```
