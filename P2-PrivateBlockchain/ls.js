@@ -51,7 +51,7 @@ class LevelSandbox {
                 self.addLevelDBData(i, value);
                 resolve(i);
                 if(i > 0){
-                    console.log("Block #" + (i - 1) + " successfully added!");
+                    console.log("\nBlock #" + i + " successfully added! \n");
                 };
             });
         })
