@@ -35,113 +35,99 @@ class Block{
 |  ================================================*/
 
 class Blockchain{
+    
+    
     constructor() {
-        this.addBlock(new Block("random data"));
+        const bh = this.getBlockHeight();
+        bh.then(r => this.addGenesis(r));
+    }
+
+    //Add genesis block if block height is 0 or less
+    addGenesis(bheight){
+        if(bheight <= 0){
+            this.addBlock(new Block("Genesis Block"));
+        }
     }
 
     // Add new block
-    addBlock(newBlock){
+    async addBlock(newBlock){
         // Block height
-        db.getBlocksCount().then((count) => {
-            var blockHeight = count - 1;
-            newBlock.height = blockHeight + 1;
-            // UTC timestamp
-            newBlock.time = new Date().getTime().toString().slice(0,-3);
-            //Add previous block hash if blockheight is greater than zero
-            if(newBlock.height > 0){
-                db.getLevelDBData(blockHeight).then((value) => {
-                    var prevBlock = JSON.parse(value);
-                    newBlock.previousBlockHash = prevBlock.hash;
-                    console.log(JSON.stringify(newBlock));
-                    newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-                    //console.log(JSON.stringify(newBlock));
-                    db.addDataToLevelDB(JSON.stringify(newBlock).toString());
-                }).catch((err) => { 
-                   console.log(err); 
-                });
-            } else{
-                newBlock.body = "Genesis Block";
-                console.log(JSON.stringify(newBlock));
-                // Block hash with SHA256 using newBlock and converting to a string
-                newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-                db.addDataToLevelDB(JSON.stringify(newBlock).toString());
-            };
-        }).catch((err) => {
-            console.log(err); 
-        });
+        const bh = await this.getBlockHeight();
+        //New block height
+        newBlock.height = bh + 1;
+        // UTC timestamp
+        newBlock.time = new Date().getTime().toString().slice(0,-3);
+        //Add previous block hash if blockheight is greater than zero
+        if (newBlock.height > 0){
+            const prevBlock = JSON.parse(await this.getBlock(bh));
+            newBlock.previousBlockHash = prevBlock.hash;
+        };
+        newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+        //console.log(JSON.stringify(newBlock));
+        db.addDataToLevelDB(JSON.stringify(newBlock).toString());
     }
     
 
-    getBlock(bheight) {
+    async getBlock(bheight) {
         // pull block from db
-        db.getLevelDBData(bheight)
-            .then((value) => {
-                if(value == undefined){
-                    console.log('Block #' + bheight + ' does not exist.');
-                }else{
-                    console.log('Block #' + bheight + ' successfully retrieved!')
-                    console.log(value);
-                }
-           })
-           .catch((err) => { 
-               console.log(err); 
-            });
+        try{
+            const bk = await db.getLevelDBData(bheight);
+            console.log('Block #' + bheight + ' details...\n' + bk);
+            return bk;
+        } catch (e) {
+            console.log("Error", e);
+        }  
     }
 
-    getBlockHeight() {
-        db.getBlocksCount().then((count) => {
-            var height = count - 1;
-            console.log('The current block is Block #' + height);
-        }).catch((err) => {
-            console.log(err); 
-        });
+    async getBlockHeight() {
+        // pull height from db
+        try {
+            const height = await db.getBlocksCount();
+            if(height >= 0){
+                console.log('Current Block #' + height);
+            };
+            return height;
+        } catch (e) {
+            console.log("Error", e);
+        }  
     }
 
     // validate block
-    validateBlock(blockHeight){
+    async validateBlock(blockHeight) {
         // get block object
-        db.getLevelDBData(blockHeight).then((value) => {
-            let block = JSON.parse(value);
-            // get block hash
-            let blockHash = block.hash;
-            // remove block hash to test block integrity
-            block.hash = '';
-            // generate block hash
-            let validBlockHash = SHA256(JSON.stringify(block)).toString();
-            // Compare
-            if (blockHash===validBlockHash) {
-                console.log('Block #'+blockHeight+' hash validated!');
-            } else {
-                console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
-            }
-        }).catch((err) => { 
-           console.log(err); 
-        });
+        let block = JSON.parse(await db.getLevelDBData(blockHeight));
+        // get block hash
+        let blockHash = block.hash;
+        // remove block hash to test block integrity
+        block.hash = '';
+        // generate block hash
+        let validBlockHash = SHA256(JSON.stringify(block)).toString();
+        // Compare hashes
+        if (blockHash === validBlockHash) {
+            console.log('Block #' + blockHeight + ' valid hash!');
+            return true
+        } else {
+            console.log('Block #' + blockHeight + ' invalid hash:\n' 
+                + blockHash + '<>' + validBlockHash);
+            return false
+        }
     }
   
     // Validate blockchain
     async validateChain(){
-        var count = await db.getBlocksCount();
+        var blockHeight = await db.getBlocksCount();
         var errorLog = [];
-        var blockHeight = count - 1;
         for (let i = 0; i < blockHeight; i++) {
             //Validate block
-            let value = await db.getLevelDBData(i);
-            let value2 = await db.getLevelDBData(i + 1);
-            let block = JSON.parse(value);
-            let block2 = JSON.parse(value2);
-            let blockHash = block.hash;
-            block.hash = '';
-            let validBlockHash = SHA256(JSON.stringify(block)).toString();
-            if (blockHash === validBlockHash) {
-                console.log('Block #' + i + ' validated!');
-            } else {
-                console.log('Block #' + i + ' is invalid!');
+            let vBlock = await this.validateBlock(i);
+            if(vBlock !== true){
                 errorLog.push(i);
-            }
+            };
+            //Compare block hash link
+            let block = JSON.parse(await this.getBlock(i));
+            let block2 = JSON.parse(await this.getBlock(i + 1));
+            let blockHash = block.hash;
             let previousHash = block2.previousBlockHash;
-            //Compare the block.hash of a block to the block.previousBlockHash in the next block to 
-            //This validates the chain
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }

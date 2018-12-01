@@ -50,7 +50,9 @@ class LevelSandbox {
             }).on('close', function() {
                 self.addLevelDBData(i, value);
                 resolve(i);
-                console.log("Block #" + i + " successfully added!")
+                if(i > 0){
+                    console.log("Block #" + (i - 1) + " successfully added!");
+                };
             });
         })
     }  
@@ -71,7 +73,7 @@ class LevelSandbox {
   
   	/// Get the current # of blocks in levelDB
     getBlocksCount() {
-        let i = 0;
+        let i = -1;
         let self = this;
         return new Promise(function(resolve, reject){
             self.db.createReadStream()
