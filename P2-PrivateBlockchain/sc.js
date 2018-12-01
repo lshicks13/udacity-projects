@@ -63,7 +63,7 @@ class Blockchain{
         if (newBlock.height > 0){
             const prevBlock = JSON.parse(await this.getBlock(bh));
             newBlock.previousBlockHash = prevBlock.hash;
-        };
+        }; 
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
         //console.log(JSON.stringify(newBlock));
         db.addDataToLevelDB(JSON.stringify(newBlock).toString());
@@ -165,7 +165,7 @@ async function induceErrors(){
         let block = JSON.parse(await bc.getBlock(errorBlock));
         block.body = 'induced chain error';
         block.hash = SHA256(JSON.stringify(block)).toString();
-        console.log('Block #' + errorBlock + 'with errors...' + JSON.stringify(block) + '\n\n');
+        console.log('Block #' + errorBlock + 'with errors...' + JSON.stringify(block) + ' \n\n');
         db.addLevelDBData(errorBlock, JSON.stringify(block).toString());
     } 
 }
