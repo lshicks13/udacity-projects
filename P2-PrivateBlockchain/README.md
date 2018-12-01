@@ -41,12 +41,12 @@ let bc = new Blockchain();
 5: Generate 10 blocks using a for loop
 ```
 for (var i = 0; i <= 10; i++) {
-  blockchain.addBlock(new Block("test data "+i));
+  bc.addBlock(new Block("test data "+i));
 }
 ```
 6: Validate blockchain
 ```
-blockchain.validateChain();
+bc.validateChain();
 ```
 7: Induce errors by changing block data
 ```
@@ -65,5 +65,5 @@ async function induceErrors(){
 ```
 8: Validate blockchain. The chain should now fail with blocks 2,4, and 7.
 ```
-blockchain.validateChain();
+bc.validateChain();
 ```
