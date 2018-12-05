@@ -65,8 +65,7 @@ class Blockchain{
             newBlock.previousBlockHash = prevBlock.hash;
         }; 
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-        //console.log(JSON.stringify(newBlock));
-        db.addDataToLevelDB(JSON.stringify(newBlock).toString());
+        db.addDataToLevelDB(JSON.stringify(newBlock));
     }
     
 
@@ -86,7 +85,7 @@ class Blockchain{
         try {
             const height = await db.getBlocksCount();
             if(height >= 0){
-                console.log('Current Block #' + height);
+                console.log('Block #' + height);
             };
             return height;
         } catch (e) {
@@ -109,8 +108,8 @@ class Blockchain{
             console.log('Block #' + blockHeight + ' valid hash!\n');
             return true
         } else {
-            console.log('Block #' + blockHeight + ' invalid hash:\nOriginal Block Hash: ' 
-                + blockHash + '\nValid Block ReHash:  ' + validBlockHash);
+            console.log('Block #' + blockHeight + ' invalid hash:\nBlock Hash: ' 
+                + blockHash + '\nValid Hash: ' + validBlockHash);
             return false
         }
     }
@@ -119,27 +118,28 @@ class Blockchain{
     async validateChain(){
         var blockHeight = await db.getBlocksCount();
         var errorLog = [];
-        for (let i = 0; i < blockHeight; i++) {
+        for (let i = 0; i <= blockHeight; i++) {
             //Validate block
             let vBlock = await this.validateBlock(i);
             if(vBlock !== true){
                 errorLog.push(i);
             };
-            //Compare block hash link
             let block = JSON.parse(await this.getBlock(i));
-            let block2 = JSON.parse(await this.getBlock(i + 1));
             let blockHash = block.hash;
-            let previousHash = block2.previousBlockHash;
-            if (blockHash !== previousHash) {
-                errorLog.push(i);
-            }
-        }
+            if ((i+1) <= blockHeight){
+                let block2 = JSON.parse(await this.getBlock(i + 1));
+                let previousHash = block2.previousBlockHash;
+                if (blockHash !== previousHash) {
+                    errorLog.push(i);
+                };
+            };
+        };
         if (errorLog.length>0) {
             errorLog = [ ...new Set(errorLog) ]
             console.log('Block errors = ' + errorLog.length);
-            console.log('Blocks: '+errorLog);
+            console.log('Blocks: ' + errorLog);
         } else {
-            console.log('No errors detected');
+            console.log('No errors detected!');
         }
     }
 }
@@ -151,21 +151,20 @@ let bc = new Blockchain();
         //Test Object
         bc.addBlock(new Block('Data ' + i));
         i++;
-        if (i < 9) { 
+        if (i < 4) { 
           theLoop(i);
         }
     }, 600);
   })(0);
 
 async function induceErrors(){
-    let inducedErrorBlocks = [2,4,7];
+    let inducedErrorBlocks = [2,4];
     for (let i = 0; i < inducedErrorBlocks.length; i++) {
-        //blockchain.chain[inducedErrorBlocks[i]].data='induced chain error';
         let errorBlock = inducedErrorBlocks[i];
         let block = JSON.parse(await bc.getBlock(errorBlock));
         block.body = 'induced chain error';
         block.hash = SHA256(JSON.stringify(block)).toString();
         console.log('Block #' + errorBlock + 'with errors...' + JSON.stringify(block) + ' \n\n');
-        db.addLevelDBData(errorBlock, JSON.stringify(block).toString());
+        db.addLevelDBData(errorBlock, JSON.stringify(block));
     } 
 }
