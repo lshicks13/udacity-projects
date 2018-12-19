@@ -14,8 +14,7 @@ class BlockController {
      */
     constructor(app) {
         this.app = app;
-        //this.blocks = [];
-        //this.initializeMockData();
+        this.initializeMockData();
         this.getBlockByIndex();
         this.postNewBlock();
     }
@@ -26,7 +25,7 @@ class BlockController {
     getBlockByIndex() {
         this.app.get("/block/:index", async(req, res) => {
             // Add your code here
-            let i = req.params.index//.substring(1);
+            let i = req.params.index
             let block = await db.getBlock(i);
             if(block == undefined){
                 res.send("Block does not exist!");
@@ -44,7 +43,7 @@ class BlockController {
             // Add your code here
             console.log(req.body.body);
             if (req.body.body == undefined){
-                res.send("Error: No data in body! You must add data to create a new block.")
+                res.send("Error: You must add data to create a new block.")
             } else {
                 let block = new BlockClass.Block(req.body.body);
                 db.addBlock(block);
@@ -53,17 +52,19 @@ class BlockController {
     }
 
     /**
-     * Help method to inizialized Mock dataset, adds 10 test blocks to the blocks array
+     * Help method to inizialized Mock dataset, adds 10 test blocks to the chain after the Genesis block.
      */
     initializeMockData() {
-        if(this.blocks.length === 0){
-            for (let index = 0; index < 10; index++) {
-                let blockAux = new BlockClass.Block(`Test Data #${index}`);
-                blockAux.height = index;
-                blockAux.hash = SHA256(JSON.stringify(blockAux)).toString();
-                this.blocks.push(blockAux);
-            }
-        }
+        (function theLoop (i) {
+            setTimeout(function () {
+                //Test Object
+                db.addBlock(new BlockClass.Block('Test Data ' + i));
+                i++;
+                if (i < 10) { 
+                  theLoop(i);
+                }
+            }, 600);
+          })(0);
     }
 
 }
