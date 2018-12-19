@@ -24,13 +24,15 @@ class BlockController {
      * Implement a GET Endpoint to retrieve a block by index, url: "/api/block/:index"
      */
     getBlockByIndex() {
-        this.app.get("/api/block/:index", async(req, res) => {
+        this.app.get("/block/:index", async(req, res) => {
             // Add your code here
             let i = req.params.index//.substring(1);
             let block = await db.getBlock(i);
-            res.send(block);
-            //res.writeHead(200, {"Content-Type": "application/json"});
-            res.end();
+            if(block == undefined){
+                res.send("Block does not exist!");
+            } else {
+                res.send(block);
+            }
         });
     }
 
@@ -38,10 +40,15 @@ class BlockController {
      * Implement a POST Endpoint to add a new Block, url: "/api/block"
      */
     postNewBlock() {
-        this.app.post("/api/block", (req, res) => {
+        this.app.post("/block", (req, res) => {
             // Add your code here
-            let block = new BlockClass.Block(req.body.body);
-            db.addBlock(block);
+            console.log(req.body.body);
+            if (req.body.body == undefined){
+                res.send("Error: No data in body! You must add data to create a new block.")
+            } else {
+                let block = new BlockClass.Block(req.body.body);
+                db.addBlock(block);
+            } 
         });
     }
 
