@@ -10,15 +10,25 @@ const SHA256 = require('crypto-js/sha256');
 
 //Importing levelSandbox class
  
-const LevelSandboxClass = require('./ls1.js');
+const LevelSandboxClass = require('./ls.js');
  
 // Creating the levelSandbox class object
 
 const db = new LevelSandboxClass.LevelSandbox();
 
-//Importing Block class
- 
-const BlockClass = require('./block1.js');
+/* ===== Block Class ==============================
+|  Class with a constructor for block 			   |
+|  ===============================================*/
+
+class Block{
+	constructor(data){
+     this.hash = "",
+     this.height = 0,
+     this.body = data,
+     this.time = 0,
+     this.previousBlockHash = ""
+    }
+}
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain 		|
@@ -34,8 +44,7 @@ class Blockchain{
     //Add genesis block if block height is 0 or less
     addGenesis(bheight){
         if(bheight <= 0){
-            //console.log(JSON.stringify(new BlockClass.Block("Genesis Block111")));
-            this.addBlock(new BlockClass.Block("Genesis Block"));
+            this.addBlock(new Block("Genesis Block"));
             console.log('Genesis block was added')
         } else{
             console.log('No genesis block was added')

@@ -16,19 +16,9 @@ const LevelSandboxClass = require('./ls.js');
 
 const db = new LevelSandboxClass.LevelSandbox();
 
-/* ===== Block Class ==============================
-|  Class with a constructor for block 			   |
-|  ===============================================*/
-
-class Block{
-	constructor(data){
-     this.hash = "",
-     this.height = 0,
-     this.body = data,
-     this.time = 0,
-     this.previousBlockHash = ""
-    }
-}
+//Importing Block class
+ 
+const BlockClass = require('./bk.js');
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain 		|
@@ -41,13 +31,10 @@ class Blockchain{
         bh.then(r => this.addGenesis(r));
     }
 
-    //Add genesis block if block height is 0 or less
+    //Add genesis block if block height is less than 0
     addGenesis(bheight){
-        if(bheight <= 0){
-            this.addBlock(new Block("Genesis Block"));
-            console.log('Genesis block was added')
-        } else{
-            console.log('No genesis block was added')
+        if(bheight < 0){
+            this.addBlock(new BlockClass.Block("Genesis Block"));
         }
     }
 
@@ -73,7 +60,7 @@ class Blockchain{
         // pull block from db
         try{
             const bk = await db.getLevelDBData(bheight);
-            console.log('Block #' + bheight + ' details...\n' + bk + '\n');
+            //console.log('Block #' + bheight + ' details...\n' + bk + '\n');
             return bk;
         } catch (e) {
             console.log("Error", e);
@@ -84,9 +71,9 @@ class Blockchain{
         // pull height from db
         try {
             const height = await db.getBlocksCount();
-            if(height >= 0){
+            /*if(height >= 0){
                 console.log('Block #' + height);
-            };
+            };*/
             return height;
         } catch (e) {
             console.log("Error", e);
@@ -144,12 +131,15 @@ class Blockchain{
     }
 }
 
-let bc = new Blockchain();
+module.exports.Blockchain = Blockchain;
+
+
+/*let bc = new Blockchain();
 
 (function theLoop (i) {
     setTimeout(function () {
         //Test Object
-        bc.addBlock(new Block('Data ' + i));
+        bc.addBlock(new BlockClass.Block('Data ' + i));
         i++;
         if (i < 4) { 
           theLoop(i);
@@ -167,4 +157,4 @@ async function induceErrors(){
         console.log('Block #' + errorBlock + 'with errors...' + JSON.stringify(block) + ' \n\n');
         db.addLevelDBData(errorBlock, JSON.stringify(block));
     } 
-}
+}*/

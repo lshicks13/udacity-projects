@@ -6,7 +6,7 @@
 const level = require('level');
 
 // Declaring the folder path that store the data
-const chainDB = './chaindata1';
+const chainDB = './chaindata';
 
 // Declaring a class
 class LevelSandbox {

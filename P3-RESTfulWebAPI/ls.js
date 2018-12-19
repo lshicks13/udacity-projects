@@ -50,7 +50,7 @@ class LevelSandbox {
             }).on('close', function() {
                 self.addLevelDBData(i, value);
                 resolve(i);
-                if(i > 0){
+                if(i >= 0){
                     console.log("\nBlock #" + i + " successfully added! \n");
                 };
             });

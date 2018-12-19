@@ -38,10 +38,10 @@ class BlockController {
         this.app.post("/api/block", (req, res) => {
             // Add your code here
             let i = this.blocks.length;
-            let block = new BlockClass.Block(`My Test Data #${i}`);
+            let block = new BlockClass.Block(req.body.body);
             block.height = i;
             block.hash = SHA256(JSON.stringify(block)).toString();
-            this.blocks.push(block)
+            this.blocks.push(block);
         });
     }
 
